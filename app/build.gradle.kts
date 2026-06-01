@@ -11,8 +11,8 @@ android {
         applicationId = "com.streamtv.app"
         minSdk = 21
         targetSdk = 34
-        versionCode = 8
-        versionName = "1.5.1"
+        versionCode = 11
+        versionName = "2.1.0"
     }
 
     buildTypes {

@@ -2,25 +2,26 @@ package com.streamtv.app
 
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.app.AlertDialog
 import android.content.SharedPreferences
 import android.content.pm.ActivityInfo
 import android.graphics.Bitmap
 import android.graphics.Color
+import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.view.GestureDetector
 import android.view.Gravity
 import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
+import android.view.inputmethod.EditorInfo
 import android.webkit.*
-import android.widget.FrameLayout
-import android.widget.ProgressBar
-import android.widget.TextView
-import android.widget.Toast
+import android.widget.*
 import com.streamtv.app.data.BookmarkManager
 import com.streamtv.app.data.HistoryManager
 import com.streamtv.app.data.SiteManager
@@ -35,6 +36,7 @@ class MainActivity : Activity() {
     private lateinit var historyManager: HistoryManager
     private lateinit var overlayMenu: OverlayMenu
     private lateinit var prefs: SharedPreferences
+    private lateinit var gestureDetector: GestureDetector
 
     private var customView: View? = null
     private var customViewCallback: WebChromeClient.CustomViewCallback? = null
@@ -43,49 +45,22 @@ class MainActivity : Activity() {
     private var menuButton: FrameLayout? = null
     private var isMenuButtonVisible = true
     private val hideHandler = Handler(Looper.getMainLooper())
+    private var backPressedOnce = false
 
     companion object {
         private val HOME_URL = SiteManager.sites[0].url
 
         private val AD_BLOCK_LIST = listOf(
-            "doubleclick.net",
-            "googlesyndication.com",
-            "adservice.google",
-            "popads.net",
-            "popcash.net",
-            "propellerads.com",
-            "adnxs.com",
-            "exoclick.com",
-            "juicyads.com",
-            "trafficjunky.com",
-            "ad.plus",
-            "adsterra.com",
-            "hilltopads.net",
-            "onclickmax.com",
-            "notifpush.com",
-            "clickadu.com",
-            "a-ads.com",
-            "ad-maven.com",
-            "admaven.com",
-            "bidvertiser.com",
-            "revcontent.com",
-            "mgid.com",
-            "taboola.com",
-            "outbrain.com",
-            "zedo.com",
-            "yllix.com",
-            "clicksor.com",
-            "pushnotifications",
-            "push-notifications",
-            "onesignal.com",
-            "popunder",
-            "popmyads",
-            "poperblocker",
-            "adf.ly",
-            "shorte.st",
-            "sh.st",
-            "bc.vc",
-            "linkshrink"
+            "doubleclick.net", "googlesyndication.com", "adservice.google",
+            "popads.net", "popcash.net", "propellerads.com", "adnxs.com",
+            "exoclick.com", "juicyads.com", "trafficjunky.com", "ad.plus",
+            "adsterra.com", "hilltopads.net", "onclickmax.com", "notifpush.com",
+            "clickadu.com", "a-ads.com", "ad-maven.com", "admaven.com",
+            "bidvertiser.com", "revcontent.com", "mgid.com", "taboola.com",
+            "outbrain.com", "zedo.com", "yllix.com", "clicksor.com",
+            "pushnotifications", "push-notifications", "onesignal.com",
+            "popunder", "popmyads", "poperblocker", "adf.ly",
+            "shorte.st", "sh.st", "bc.vc", "linkshrink"
         )
     }
 
@@ -95,7 +70,6 @@ class MainActivity : Activity() {
 
         prefs = getSharedPreferences("pixeltv_prefs", MODE_PRIVATE)
 
-        // Fullscreen immersive
         window.setFlags(
             WindowManager.LayoutParams.FLAG_FULLSCREEN,
             WindowManager.LayoutParams.FLAG_FULLSCREEN
@@ -105,7 +79,6 @@ class MainActivity : Activity() {
                 or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
                 or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
         )
-
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
         // Initialize managers
@@ -118,6 +91,43 @@ class MainActivity : Activity() {
             onNavigate = { url -> webView.loadUrl(url) },
             onBookmarkCurrent = { bookmarkCurrentPage() }
         )
+
+        // Gesture detector for swipe
+        gestureDetector = GestureDetector(this, object : GestureDetector.SimpleOnGestureListener() {
+            private val SWIPE_THRESHOLD = 100
+            private val SWIPE_VELOCITY = 100
+
+            override fun onFling(
+                e1: MotionEvent?,
+                e2: MotionEvent,
+                velocityX: Float,
+                velocityY: Float
+            ): Boolean {
+                val diffX = (e2.x) - (e1?.x ?: 0f)
+                val diffY = (e2.y) - (e1?.y ?: 0f)
+
+                if (Math.abs(diffX) > Math.abs(diffY)) {
+                    if (Math.abs(diffX) > SWIPE_THRESHOLD && Math.abs(velocityX) > SWIPE_VELOCITY) {
+                        if (diffX > 0) {
+                            // Swipe right — go back
+                            if (webView.canGoBack()) webView.goBack()
+                        } else {
+                            // Swipe left — switch site
+                            switchSite(1)
+                        }
+                        return true
+                    }
+                } else {
+                    if (diffY > SWIPE_THRESHOLD && Math.abs(velocityY) > SWIPE_VELOCITY) {
+                        // Swipe down — refresh
+                        webView.reload()
+                        Toast.makeText(this@MainActivity, "🔄 Refresh", Toast.LENGTH_SHORT).show()
+                        return true
+                    }
+                }
+                return false
+            }
+        })
 
         // Setup layout
         val rootLayout = FrameLayout(this).apply {
@@ -139,8 +149,7 @@ class MainActivity : Activity() {
 
         progressBar = ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal).apply {
             layoutParams = FrameLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                6
+                ViewGroup.LayoutParams.MATCH_PARENT, 6
             )
             isIndeterminate = false
             max = 100
@@ -158,6 +167,12 @@ class MainActivity : Activity() {
 
         setupWebView()
 
+        // Intercept touch for gestures (but still pass to WebView)
+        webView.setOnTouchListener { _, event ->
+            gestureDetector.onTouchEvent(event)
+            false // let WebView handle it too
+        }
+
         rootLayout.addView(webView)
         rootLayout.addView(progressBar)
         rootLayout.addView(fullscreenContainer)
@@ -167,18 +182,15 @@ class MainActivity : Activity() {
 
         setContentView(rootLayout)
 
-        // Restore saved button position
-        rootLayout.post {
-            restoreButtonPosition()
-        }
+        rootLayout.post { restoreButtonPosition() }
 
         scheduleHideMenuButton()
-        webView.loadUrl(HOME_URL)
+
+        // Load URL from intent or default
+        val url = intent.getStringExtra("url") ?: HOME_URL
+        webView.loadUrl(url)
     }
 
-    /**
-     * Draggable floating menu button — user bisa geser ke mana aja
-     */
     @SuppressLint("ClickableViewAccessibility")
     private fun createDraggableMenuButton(): FrameLayout {
         val density = resources.displayMetrics.density
@@ -191,7 +203,6 @@ class MainActivity : Activity() {
             isFocusable = false
         }
 
-        // Gradient background
         val bg = GradientDrawable().apply {
             shape = GradientDrawable.OVAL
             colors = intArrayOf(
@@ -215,7 +226,6 @@ class MainActivity : Activity() {
         }
         container.addView(icon)
 
-        // Drag logic
         var dX = 0f
         var dY = 0f
         var startX = 0f
@@ -234,25 +244,19 @@ class MainActivity : Activity() {
                     true
                 }
                 MotionEvent.ACTION_MOVE -> {
-                    val moveX = Math.abs(event.rawX - startX)
-                    val moveY = Math.abs(event.rawY - startY)
-                    if (moveX > 10 || moveY > 10) {
+                    if (Math.abs(event.rawX - startX) > 10 || Math.abs(event.rawY - startY) > 10) {
                         isDragging = true
                     }
                     if (isDragging) {
-                        val newX = (event.rawX + dX).coerceIn(0f, (webView.width - view.width).toFloat())
-                        val newY = (event.rawY + dY).coerceIn(0f, (webView.height - view.height).toFloat())
-                        view.x = newX
-                        view.y = newY
+                        view.x = (event.rawX + dX).coerceIn(0f, (webView.width - view.width).toFloat())
+                        view.y = (event.rawY + dY).coerceIn(0f, (webView.height - view.height).toFloat())
                     }
                     true
                 }
                 MotionEvent.ACTION_UP -> {
                     if (!isDragging) {
-                        // Tap — open menu
                         overlayMenu.showMainMenu()
                     } else {
-                        // Save position after drag
                         saveButtonPosition(view.x, view.y)
                     }
                     scheduleHideMenuButton()
@@ -271,40 +275,23 @@ class MainActivity : Activity() {
     }
 
     private fun saveButtonPosition(x: Float, y: Float) {
-        prefs.edit()
-            .putFloat("btn_x", x)
-            .putFloat("btn_y", y)
-            .apply()
+        prefs.edit().putFloat("btn_x", x).putFloat("btn_y", y).apply()
     }
 
     private fun restoreButtonPosition() {
         val density = resources.displayMetrics.density
-        val defaultX = 16 * density
-        val defaultY = 16 * density
-
-        val x = prefs.getFloat("btn_x", defaultX)
-        val y = prefs.getFloat("btn_y", defaultY)
-
-        menuButton?.x = x
-        menuButton?.y = y
+        menuButton?.x = prefs.getFloat("btn_x", 16 * density)
+        menuButton?.y = prefs.getFloat("btn_y", 16 * density)
     }
 
     private fun scheduleHideMenuButton() {
         hideHandler.removeCallbacksAndMessages(null)
         menuButton?.animate()?.alpha(0.85f)?.setDuration(200)?.start()
         isMenuButtonVisible = true
-
         hideHandler.postDelayed({
             menuButton?.animate()?.alpha(0.2f)?.setDuration(600)?.start()
             isMenuButtonVisible = false
         }, 5000)
-    }
-
-    override fun onTouchEvent(event: MotionEvent?): Boolean {
-        if (event?.action == MotionEvent.ACTION_DOWN) {
-            if (!isMenuButtonVisible) scheduleHideMenuButton()
-        }
-        return super.onTouchEvent(event)
     }
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -331,24 +318,15 @@ class MainActivity : Activity() {
         webView.setLayerType(View.LAYER_TYPE_HARDWARE, null)
 
         webView.webViewClient = object : WebViewClient() {
-
-            override fun shouldOverrideUrlLoading(
-                view: WebView?,
-                request: WebResourceRequest?
-            ): Boolean {
+            override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
                 val url = request?.url?.toString() ?: return false
                 if (isAdUrl(url)) return true
                 return false
             }
 
-            override fun shouldInterceptRequest(
-                view: WebView?,
-                request: WebResourceRequest?
-            ): WebResourceResponse? {
+            override fun shouldInterceptRequest(view: WebView?, request: WebResourceRequest?): WebResourceResponse? {
                 val url = request?.url?.toString() ?: return null
-                if (isAdUrl(url)) {
-                    return WebResourceResponse("text/plain", "UTF-8", "".byteInputStream())
-                }
+                if (isAdUrl(url)) return WebResourceResponse("text/plain", "UTF-8", "".byteInputStream())
                 return null
             }
 
@@ -363,68 +341,46 @@ class MainActivity : Activity() {
                 progressBar.visibility = View.GONE
                 currentTitle = view?.title ?: url ?: "Untitled"
                 currentUrl = url ?: ""
-
                 if (!url.isNullOrBlank() && !isAdUrl(url)) {
                     historyManager.addToHistory(currentTitle, currentUrl)
                 }
-
                 injectHelpers()
             }
 
-            override fun onReceivedError(
-                view: WebView?,
-                request: WebResourceRequest?,
-                error: WebResourceError?
-            ) {
+            override fun onReceivedError(view: WebView?, request: WebResourceRequest?, error: WebResourceError?) {
                 if (request?.isForMainFrame == true) {
-                    Toast.makeText(
-                        this@MainActivity,
-                        "Gagal memuat halaman. Periksa koneksi internet.",
-                        Toast.LENGTH_SHORT
-                    ).show()
+                    showSnackbar("Gagal memuat halaman. Periksa koneksi internet.", "Retry") {
+                        webView.reload()
+                    }
                 }
             }
         }
 
         webView.webChromeClient = object : WebChromeClient() {
-
             override fun onProgressChanged(view: WebView?, newProgress: Int) {
                 progressBar.progress = newProgress
                 if (newProgress == 100) progressBar.visibility = View.GONE
             }
 
-            override fun onCreateWindow(
-                view: WebView?,
-                isDialog: Boolean,
-                isUserGesture: Boolean,
-                resultMsg: android.os.Message?
-            ): Boolean = false
+            override fun onCreateWindow(view: WebView?, isDialog: Boolean, isUserGesture: Boolean, resultMsg: android.os.Message?): Boolean = false
 
             override fun onShowCustomView(view: View?, callback: CustomViewCallback?) {
-                if (customView != null) {
-                    callback?.onCustomViewHidden()
-                    return
-                }
-
+                if (customView != null) { callback?.onCustomViewHidden(); return }
                 customView = view
                 customViewCallback = callback
-
                 webView.visibility = View.GONE
                 menuButton?.visibility = View.GONE
                 fullscreenContainer.visibility = View.VISIBLE
                 fullscreenContainer.addView(view)
-
                 requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
             }
 
             override fun onHideCustomView() {
                 if (customView == null) return
-
                 fullscreenContainer.removeView(customView)
                 fullscreenContainer.visibility = View.GONE
                 webView.visibility = View.VISIBLE
                 menuButton?.visibility = View.VISIBLE
-
                 customView = null
                 customViewCallback?.onCustomViewHidden()
                 customViewCallback = null
@@ -433,59 +389,21 @@ class MainActivity : Activity() {
     }
 
     private fun injectHelpers() {
-        val js = """
-            (function() {
-                var adSelectors = [
-                    '[class*="ads"]', '[id*="ads"]',
-                    '[class*="popup"]', '[id*="popup"]',
-                    'iframe[src*="ad"]', '.adsbygoogle',
-                    '[class*="iklan"]', '[id*="iklan"]'
-                ];
-                adSelectors.forEach(function(sel) {
-                    try {
-                        document.querySelectorAll(sel).forEach(function(el) {
-                            if (!el.querySelector('video') && !el.closest('.player') && !el.closest('[class*="play"]')) {
-                                el.style.display = 'none';
-                            }
-                        });
-                    } catch(e) {}
-                });
-
-                window.open = function() { return null; };
-
-                document.querySelectorAll('meta[http-equiv="refresh"]').forEach(function(m) { m.remove(); });
-
-                try {
-                    Object.defineProperty(window.location, 'reload', {
-                        value: function() {},
-                        writable: false,
-                        configurable: false
-                    });
-                } catch(e) {}
-
-                var style = document.getElementById('pixeltv-css');
-                if (!style) {
-                    style = document.createElement('style');
-                    style.id = 'pixeltv-css';
-                    style.innerHTML = `
-                        a:focus, button:focus, [onclick]:focus, [role="button"]:focus,
-                        input:focus, [tabindex]:focus {
-                            outline: 3px solid #FFD700 !important;
-                            outline-offset: 2px !important;
-                            box-shadow: 0 0 12px rgba(255, 215, 0, 0.6) !important;
-                        }
-                    `;
-                    document.head.appendChild(style);
-                }
-
-                document.querySelectorAll('a, button, [onclick], [role="button"]').forEach(function(el) {
-                    if (!el.getAttribute('tabindex')) {
-                        el.setAttribute('tabindex', '0');
-                    }
-                });
-            })();
-        """.trimIndent()
-        webView.evaluateJavascript(js, null)
+        // Load TV navigation JS from assets
+        try {
+            val inputStream = assets.open("tv_nav.js")
+            val js = inputStream.bufferedReader().use { it.readText() }
+            webView.evaluateJavascript(js, null)
+        } catch (e: Exception) {
+            // Fallback minimal injection
+            val fallbackJs = """
+                (function() {
+                    window.open = function() { return null; };
+                    document.querySelectorAll('meta[http-equiv="refresh"]').forEach(function(m) { m.remove(); });
+                })();
+            """.trimIndent()
+            webView.evaluateJavascript(fallbackJs, null)
+        }
     }
 
     private fun isAdUrl(url: String): Boolean {
@@ -498,7 +416,6 @@ class MainActivity : Activity() {
             Toast.makeText(this, "Tidak ada halaman untuk di-bookmark", Toast.LENGTH_SHORT).show()
             return
         }
-
         if (bookmarkManager.isBookmarked(currentUrl)) {
             bookmarkManager.removeBookmark(currentUrl)
             Toast.makeText(this, "⭐ Bookmark dihapus", Toast.LENGTH_SHORT).show()
@@ -507,6 +424,60 @@ class MainActivity : Activity() {
             Toast.makeText(this, "⭐ Bookmark disimpan", Toast.LENGTH_SHORT).show()
         }
     }
+
+    /**
+     * Snackbar-style notification with action button
+     */
+    private fun showSnackbar(message: String, actionText: String, action: () -> Unit) {
+        val density = resources.displayMetrics.density
+        val root = window.decorView.findViewById<FrameLayout>(android.R.id.content)
+
+        val snackbar = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            background = GradientDrawable().apply {
+                cornerRadius = 12f
+                setColor(Color.parseColor("#DD222222"))
+            }
+            setPadding((16 * density).toInt(), (12 * density).toInt(), (12 * density).toInt(), (12 * density).toInt())
+            layoutParams = FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            ).apply {
+                gravity = Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL
+                bottomMargin = (32 * density).toInt()
+            }
+            elevation = 8f
+        }
+
+        snackbar.addView(TextView(this).apply {
+            text = message
+            textSize = 13f
+            setTextColor(Color.WHITE)
+            layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
+        })
+
+        snackbar.addView(TextView(this).apply {
+            text = actionText
+            textSize = 13f
+            setTextColor(Color.parseColor("#7C4DFF"))
+            typeface = Typeface.DEFAULT_BOLD
+            setPadding((16 * density).toInt(), 0, 0, 0)
+            setOnClickListener {
+                action()
+                root.removeView(snackbar)
+            }
+        })
+
+        root.addView(snackbar)
+
+        // Auto dismiss after 5s
+        Handler(Looper.getMainLooper()).postDelayed({
+            root.removeView(snackbar)
+        }, 5000)
+    }
+
+    // ==================== KEY HANDLING ====================
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
         when (keyCode) {
@@ -519,6 +490,32 @@ class MainActivity : Activity() {
                     webView.goBack()
                     return true
                 }
+                showExitDialog()
+                return true
+            }
+
+            // D-pad navigation → forward to JS navigation layer
+            KeyEvent.KEYCODE_DPAD_UP -> {
+                webView.evaluateJavascript("window.__pixeltv_navigate && window.__pixeltv_navigate('up');", null)
+                return true
+            }
+            KeyEvent.KEYCODE_DPAD_DOWN -> {
+                webView.evaluateJavascript("window.__pixeltv_navigate && window.__pixeltv_navigate('down');", null)
+                return true
+            }
+            KeyEvent.KEYCODE_DPAD_LEFT -> {
+                webView.evaluateJavascript("window.__pixeltv_navigate && window.__pixeltv_navigate('left');", null)
+                return true
+            }
+            KeyEvent.KEYCODE_DPAD_RIGHT -> {
+                webView.evaluateJavascript("window.__pixeltv_navigate && window.__pixeltv_navigate('right');", null)
+                return true
+            }
+
+            // OK/Enter → click focused element
+            KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_ENTER -> {
+                webView.evaluateJavascript("window.__pixeltv_click && window.__pixeltv_click();", null)
+                return true
             }
 
             KeyEvent.KEYCODE_MENU, KeyEvent.KEYCODE_BOOKMARK -> {
@@ -531,21 +528,62 @@ class MainActivity : Activity() {
                 return true
             }
 
-            KeyEvent.KEYCODE_CHANNEL_UP -> {
-                switchSite(1)
-                return true
-            }
-            KeyEvent.KEYCODE_CHANNEL_DOWN -> {
-                switchSite(-1)
-                return true
-            }
+            KeyEvent.KEYCODE_CHANNEL_UP -> { switchSite(1); return true }
+            KeyEvent.KEYCODE_CHANNEL_DOWN -> { switchSite(-1); return true }
 
-            KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE -> {
-                toggleVideo()
-                return true
-            }
+            KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE -> { toggleVideo(); return true }
+
+            KeyEvent.KEYCODE_SEARCH -> { showSearchDialog(); return true }
         }
         return super.onKeyDown(keyCode, event)
+    }
+
+    private fun showExitDialog() {
+        val density = resources.displayMetrics.density
+
+        AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog)
+            .setTitle("Keluar dari PIXELTV?")
+            .setMessage("Yakin mau keluar dari aplikasi?")
+            .setPositiveButton("Keluar") { _, _ -> finish() }
+            .setNegativeButton("Batal", null)
+            .setNeutralButton("🏠 Home") { _, _ ->
+                startActivity(android.content.Intent(this, HomeActivity::class.java))
+                finish()
+            }
+            .show()
+    }
+
+    fun showSearchDialog() {
+        val density = resources.displayMetrics.density
+
+        val input = EditText(this).apply {
+            hint = "Cari judul film..."
+            setTextColor(Color.WHITE)
+            setHintTextColor(Color.parseColor("#66FFFFFF"))
+            setPadding((16 * density).toInt(), (12 * density).toInt(), (16 * density).toInt(), (12 * density).toInt())
+            setBackgroundColor(Color.parseColor("#22FFFFFF"))
+            imeOptions = EditorInfo.IME_ACTION_SEARCH
+            inputType = android.text.InputType.TYPE_CLASS_TEXT
+        }
+
+        AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog)
+            .setTitle("🔍 Cari Film")
+            .setView(input)
+            .setPositiveButton("Cari") { _, _ ->
+                val query = input.text.toString().trim()
+                if (query.isNotEmpty()) {
+                    // Search on current site
+                    val searchUrl = when {
+                        currentUrl.contains("idlix") -> "https://z1.idlixku.com/?s=$query"
+                        currentUrl.contains("lk21") -> "https://tv10.lk21official.cc/?s=$query"
+                        currentUrl.contains("rebahin") -> "https://rebahinxxi3.beauty/?s=$query"
+                        else -> "https://z1.idlixku.com/?s=$query"
+                    }
+                    webView.loadUrl(searchUrl)
+                }
+            }
+            .setNegativeButton("Batal", null)
+            .show()
     }
 
     private fun toggleVideo() {

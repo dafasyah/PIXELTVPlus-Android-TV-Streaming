@@ -31,7 +31,7 @@ class OverlayMenu(
 ) {
 
     companion object {
-        const val APP_VERSION = "1.5.1"
+        const val APP_VERSION = "2.1.0"
         const val CREDIT_URL = "https://www.tiktok.com/@buildbox.studio"
     }
 

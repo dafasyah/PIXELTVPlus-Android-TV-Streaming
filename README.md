@@ -2,7 +2,7 @@
 
 PIXELTV - Android TV & Mobile streaming app with built-in ad blocker, multi-site support, bookmark, history, and D-pad navigation. Features draggable floating menu, modern glassmorphism UI, and fullscreen video handler. Built with Kotlin + WebView.
 
-**Version:** 1.5.1  
+**Version:** 2.1.0  
 **Build by:** [Buildbox Studio](https://www.tiktok.com/@buildbox.studio)
 
 ---
@@ -11,9 +11,15 @@ PIXELTV - Android TV & Mobile streaming app with built-in ad blocker, multi-site
 
 ### Features
 
+- ✅ **Splash Screen** — animated logo on launch
+- ✅ **Home Screen** — pick a site or continue watching
+- ✅ **Search** — search movies directly from the app
+- ✅ **Gesture Navigation** — swipe left (switch site), swipe right (go back), swipe down (refresh)
+- ✅ **Confirm Exit** — no more accidental exits
+- ✅ **Snackbar Notifications** — error messages with retry button
 - ✅ Fullscreen WebView with ad blocker
 - ✅ Compatible with Android TV (D-pad native focus navigation)
-- ✅ Compatible with Phone/Tablet (touch)
+- ✅ Compatible with Phone/Tablet (touch + gestures)
 - ✅ Fullscreen video handler
 - ✅ Custom User-Agent (desktop browser)
 - ✅ Hardware acceleration
@@ -21,7 +27,7 @@ PIXELTV - Android TV & Mobile streaming app with built-in ad blocker, multi-site
 - ✅ Immersive mode (hide status bar & nav bar)
 - ✅ Bookmark — save favorite pages
 - ✅ History — automatic watch history
-- ✅ Multi-site — 3 streaming sites, switch with CH+/CH-
+- ✅ Multi-site — 3 streaming sites, switch with CH+/CH- or swipe
 - ✅ Draggable floating button — move anywhere, position saved
 - ✅ Modern overlay menu — glassmorphism design with animation
 - ✅ Media control — Play/Pause video via remote
@@ -32,22 +38,25 @@ PIXELTV - Android TV & Mobile streaming app with built-in ad blocker, multi-site
 
 | Button | Function |
 |--------|----------|
-| D-pad | Move focus between elements (native WebView) |
+| D-pad | Move focus between elements |
 | OK / Center | Click focused element |
-| Back | Go to previous page |
-| Menu | Open overlay menu (bookmark, history, sites) |
-| Info/Guide | Quick bookmark current page |
+| Back | Go back / Confirm exit |
+| Menu | Open overlay menu |
+| Info/Guide | Quick bookmark |
 | CH+ / CH- | Switch streaming site |
 | Play/Pause | Play/pause video |
+| Search | Open search dialog |
 
-### Phone/Tablet Navigation
+### Phone/Tablet Gestures
 
-| Action | Function |
-|--------|----------|
-| Tap ▶ button (floating) | Open overlay menu |
-| Drag ▶ button | Move button position |
-| Long press ▶ button | Quick bookmark |
-| Touch/scroll | Normal navigation |
+| Gesture | Function |
+|---------|----------|
+| Swipe Left | Switch to next site |
+| Swipe Right | Go back |
+| Swipe Down | Refresh page |
+| Tap ▶ button | Open menu |
+| Drag ▶ button | Move button |
+| Long press ▶ | Quick bookmark |
 
 ### Build
 
@@ -67,55 +76,58 @@ PIXELTV - Android TV & Mobile streaming app with built-in ad blocker, multi-site
 
 ### Fitur
 
+- ✅ **Splash Screen** — logo animasi saat buka app
+- ✅ **Home Screen** — pilih situs atau lanjut nonton
+- ✅ **Search** — cari film langsung dari app
+- ✅ **Gesture Navigation** — swipe kiri (ganti situs), swipe kanan (kembali), swipe bawah (refresh)
+- ✅ **Confirm Exit** — nggak lagi keluar nggak sengaja
+- ✅ **Snackbar Notifications** — pesan error dengan tombol retry
 - ✅ WebView fullscreen dengan ad blocker
 - ✅ Kompatibel Android TV (navigasi D-pad native)
-- ✅ Kompatibel HP/Tablet (touch)
+- ✅ Kompatibel HP/Tablet (touch + gesture)
 - ✅ Fullscreen video handler
 - ✅ Custom User-Agent (desktop browser)
 - ✅ Hardware acceleration
 - ✅ Layar tetap nyala saat streaming
-- ✅ Immersive mode (sembunyikan status bar & nav bar)
+- ✅ Immersive mode
 - ✅ Bookmark — simpan halaman favorit
 - ✅ History — riwayat tontonan otomatis
-- ✅ Multi-site — 3 situs streaming, ganti pakai CH+/CH-
-- ✅ Floating button draggable — geser ke mana aja, posisi tersimpan
-- ✅ Menu overlay modern — desain glassmorphism dengan animasi
-- ✅ Media control — Play/Pause video via remote
-- ✅ Anti auto-refresh (fix reload saat idle)
+- ✅ Multi-site — 3 situs streaming
+- ✅ Floating button draggable
+- ✅ Menu overlay modern — glassmorphism
+- ✅ Media control — Play/Pause via remote
+- ✅ Anti auto-refresh
 - ✅ Block popup & redirect iklan
 
 ### Navigasi Remote TV
 
 | Tombol | Fungsi |
 |--------|--------|
-| D-pad | Pindah focus antar elemen (native WebView) |
+| D-pad | Pindah focus antar elemen |
 | OK / Center | Klik elemen yang di-focus |
-| Back | Kembali ke halaman sebelumnya |
-| Menu | Buka overlay menu (bookmark, history, sites) |
-| Info/Guide | Quick bookmark halaman saat ini |
+| Back | Kembali / Confirm keluar |
+| Menu | Buka overlay menu |
+| Info/Guide | Quick bookmark |
 | CH+ / CH- | Ganti situs streaming |
 | Play/Pause | Play/pause video |
+| Search | Buka dialog pencarian |
 
-### Navigasi HP/Tablet
+### Gesture HP/Tablet
 
-| Aksi | Fungsi |
-|------|--------|
-| Tap tombol ▶ (floating) | Buka overlay menu |
-| Drag tombol ▶ | Pindahkan posisi button |
-| Long press tombol ▶ | Quick bookmark |
-| Touch/scroll | Navigasi normal |
+| Gesture | Fungsi |
+|---------|--------|
+| Swipe Kiri | Ganti ke situs berikutnya |
+| Swipe Kanan | Kembali |
+| Swipe Bawah | Refresh halaman |
+| Tap tombol ▶ | Buka menu |
+| Drag tombol ▶ | Pindahkan button |
+| Long press ▶ | Quick bookmark |
 
 ### Build
 
 1. Buka folder `StreamTV` di **Android Studio**
 2. Tunggu Gradle sync
-3. Run di device/emulator (Android TV atau HP)
-
-### Minimum Requirements
-
-- Android 5.0 (API 21)
-- Target: Android 14 (API 34)
-- Kotlin 1.9+
+3. Run di device/emulator
 
 ---
 
@@ -137,7 +149,9 @@ PIXELTV - Android TV & Mobile streaming app with built-in ad blocker, multi-site
 StreamTV/
 ├── app/src/main/
 │   ├── kotlin/com/streamtv/app/
-│   │   ├── MainActivity.kt           # Main activity + WebView
+│   │   ├── SplashActivity.kt         # Splash screen
+│   │   ├── HomeActivity.kt           # Home / site picker
+│   │   ├── MainActivity.kt           # WebView player
 │   │   ├── data/
 │   │   │   ├── BookmarkManager.kt    # Bookmark CRUD
 │   │   │   ├── HistoryManager.kt     # History tracking
@@ -158,62 +172,55 @@ StreamTV/
 
 ## Changelog
 
+### v2.1.0
+- NEW: **JS Navigation Layer** for Android TV remote
+  - Scans all clickable elements on page
+  - D-pad moves between elements based on spatial position (nearest in direction)
+  - Yellow highlight border shows which element is selected
+  - OK/Enter clicks the highlighted element
+  - Auto-scroll when navigating to off-screen elements
+  - Auto-rescan on page changes (MutationObserver)
+  - Falls back to page scroll if no element found in direction
+- IMPROVED: TV remote now actually usable for browsing & selecting movies
+- IMPROVED: Navigation feels like a native TV app
+
+### v2.0
+- NEW: Splash screen with animated logo
+- NEW: Home screen — site picker + continue watching
+- NEW: Search dialog — search movies on current site
+- NEW: Gesture navigation — swipe left/right/down
+- NEW: Confirm exit dialog (Back when can't go back)
+- NEW: Snackbar with retry button on error
+- NEW: Home button in exit dialog to go back to site picker
+- IMPROVED: App flow: Splash → Home → Player
+- IMPROVED: 3-activity architecture for better UX
+
 ### v1.5.1
 - Fix menu can't scroll — wrapped in ScrollView
-- Max menu height 85% of screen
 
 ### v1.5
-- Floating button now draggable — move to any position
-- Button position persists between sessions
-- Menu overlay total redesign — modern glassmorphism style
-- Scale + fade animation on menu open
-- Menu items with icon, label, and arrow indicator
-- Focus highlight for TV remote navigation in menu
-- Modern confirm dialog for clear history
-- Scrollable bookmark & history list
-- Update Rebahin URL → rebahinxxi3.beauty
+- Floating button now draggable
+- Menu overlay redesign — glassmorphism style
+- Update Rebahin URL
 
 ### v1.4.2
-- Added "Build by Buildbox Studio" credit in overlay menu
-- Added version info in menu
-- Renamed menu title to "PIXELTV Menu"
-
-### v1.4.1
-- Version bump
+- Added credit & version in menu
 
 ### v1.4
-- Removed virtual cursor (didn't work on TV)
-- D-pad now passes through to WebView (native focus navigation)
-- Inject tabindex to all clickable elements
-- Yellow focus style for D-pad navigation
-- Fixed "back to home" bug — removed domain whitelist, use blacklist only
+- Removed virtual cursor
+- D-pad pass-through to WebView
+- Fixed "back to home" bug
 
 ### v1.3
-- Added virtual cursor (experimental)
-- Block auto-refresh for iDlix
-- Block ad redirects with domain whitelist
-- Extended ad domain list
+- Block auto-refresh
+- Block ad redirects
 
 ### v1.2
-- Renamed app to PIXELTV
-- Updated icon
-- Dark purple theme
-- Updated site URLs (LK21, Rebahin)
+- Renamed to PIXELTV
+- Updated icon & theme
 
 ### v1.0
 - Initial release
-- Fullscreen WebView + ad blocker
-- Bookmark, History, Multi-site
-- Overlay menu
-- Android TV + Mobile support
-
----
-
-## Notes
-
-- Streaming site URLs may change anytime, update in `SiteManager.kt`
-- For better ad blocking, combine with DNS AdGuard (Private DNS: `dns.adguard-dns.com`)
-- For Play Store publishing, content must be replaced with legal sources
 
 ---
 

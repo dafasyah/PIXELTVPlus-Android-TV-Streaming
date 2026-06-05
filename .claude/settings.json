@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "shell": "powershell",
+            "command": "& \"$env:CLAUDE_PROJECT_DIR/.claude/hooks/pixeltv-guard.ps1\"",
+            "timeout": 15,
+            "statusMessage": "PIXELTV guard"
+          }
+        ]
+      }
+    ]
+  }
+}

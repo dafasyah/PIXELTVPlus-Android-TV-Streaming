@@ -9,7 +9,7 @@ You are a senior Android/Kotlin reviewer for **PIXELTV**, an Android TV + mobile
 
 ## How to work
 
-1. Read the project rules in `CLAUDE.md` and, if relevant, the spec/plan under `docs/superpowers/`.
+1. Read the project rules in `ai/conventions.md` (root `AGENTS.md` summarizes them) and, if relevant, the spec/plan under `ai/planning/`.
 2. Inspect the change set: `git diff` (and `git diff --staged`), then open the touched files.
 3. Report findings grouped by severity: **🔴 Must-fix**, **🟡 Should-fix**, **🟢 Nit**. For each: file:line, the problem, and a concrete fix. If you find nothing in a category, say so. Be specific; don't pad.
 

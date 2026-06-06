@@ -1,0 +1,20 @@
+PIXELTV — Android TV & mobile streaming app (Kotlin, programmatic UI, WebView + Media3).
+
+Read AGENTS.md and the ai/ folder before working. ai/ is the canonical, vendor-neutral AI knowledge base:
+- ai/project-overview.md — what the app is + current state
+- ai/architecture.md — the stream-sniff -> native-player pipeline
+- ai/conventions.md — hard rules + code style
+- ai/tasklist.md — planned tasks (0-8) + live status
+- ai/planning/implementation-plan.md — exact TDD steps with code
+
+The 5 hard rules (do NOT break):
+1. Fallback always — if sniffing fails or the player errors, fall back to the WebView; never crash or dead-end.
+2. Replay headers — pass Referer/Origin/User-Agent/Cookie from the sniffer to the player's DefaultHttpDataSource, or HLS streams return 403.
+3. Keep stream/StreamSniffer and stream/MediaStream pure — no android.* imports (they must stay JVM-unit-testable). Get cookies via CookieManager in the Activity and pass them in.
+4. One configurable endpoint via SettingsManager — no hardcoded site lists or multi-site switching.
+5. Reuse MainActivity.AD_BLOCK_LIST for ad filtering (the sniffer rejects those domains too).
+
+Style: programmatic UI only (no res/layout XML); Activities extend android.app.Activity; every interactive view isFocusable=true for D-pad; annotate Media3 classes with @UnstableApi; comments/strings often in Bahasa Indonesia — match the surrounding language. Bump versionCode + versionName together on release.
+
+Build/test (Windows PowerShell): .\gradlew.bat testDebugUnitTest  |  .\gradlew.bat assembleDebug
+If JAVA_HOME is unset in the shell: $env:JAVA_HOME='C:\Program Files\Android\Android Studio\jbr'; then run gradlew. See ai/build-and-test.md.

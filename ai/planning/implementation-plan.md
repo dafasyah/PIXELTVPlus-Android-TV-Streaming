@@ -1,6 +1,6 @@
 # PIXELTV v3.0 Native Player Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For AI agents:** implement this plan task-by-task, in order. Each task is TDD — write the failing test → run it (red) → implement → run green → commit. Steps use checkbox (`- [ ]`) syntax for tracking. (Claude Code users: the `superpowers:subagent-driven-development` skill automates this.)
 
 **Goal:** Add a native ad-free Media3 player fed by WebView stream-sniffing, plus a single configurable endpoint with a Settings screen, while keeping the WebView as an automatic fallback.
 
@@ -8,7 +8,7 @@
 
 **Tech Stack:** Kotlin, Android (minSdk 21 / targetSdk 34), AndroidX, **Media3 1.x (ExoPlayer/HLS/DASH/UI)**, JUnit4. Programmatic UI (no XML layouts), SharedPreferences for persistence.
 
-**Spec:** `docs/superpowers/specs/2026-06-05-pixeltv-native-player-design.md`
+**Spec:** [`design-spec.md`](design-spec.md) (same folder) · **Index/status:** [`../tasklist.md`](../tasklist.md)
 
 ---
 

@@ -10,9 +10,9 @@ The planned implementation, broken into 9 TDD tasks. **This file is the live sta
 | # | Task | Status | Verify | Key files |
 |---|------|--------|--------|-----------|
 | 0 | **Dependencies, version bump, test wiring** — Media3 1.4.1 + JUnit; version → 3.0.0/12; smoke test | ✅ | unit | `app/build.gradle.kts`, `app/src/test/.../SmokeTest.kt` |
-| 1 | **`MediaStream` model** — `url`/`type`/`headers` + `StreamType` enum | ⬜ | compile | `stream/MediaStream.kt` |
-| 2 | **`StreamSniffer` (TDD)** — classify `.m3u8`/`.mpd`/`.mp4`, reject ads/`.ts`, build replay headers; **11 tests** | ⬜ | unit | `stream/StreamSniffer.kt` (+ test) |
-| 3 | **`SettingsManager` (TDD)** — endpoint/autoSniff/UA, validation, defaults, in-memory fake; **7 tests** | ⬜ | unit | `data/KeyValueStore.kt`, `data/SettingsManager.kt` (+ test) |
+| 1 | **`MediaStream` model** — `url`/`type`/`headers` + `StreamType` enum | 🟡 | compile | `stream/MediaStream.kt` |
+| 2 | **`StreamSniffer` (TDD)** — classify `.m3u8`/`.mpd`/`.mp4`, reject ads/`.ts`, build replay headers; **11 tests** | 🟡 | unit | `stream/StreamSniffer.kt` (+ test) |
+| 3 | **`SettingsManager` (TDD)** — endpoint/autoSniff/UA, validation, defaults, in-memory fake; **7 tests** | 🟡 | unit | `data/KeyValueStore.kt`, `data/SettingsManager.kt` (+ test) |
 | 4 | **`PlayerActivity` (Media3)** — HLS/DASH/Progressive, header replay, D-pad, error→finish; manifest entry | ⬜ | compile + manual | `PlayerActivity.kt`, `AndroidManifest.xml` |
 | 5 | **`SettingsActivity`** — programmatic TV form (URL, auto-sniff, UA, save/reset); manifest entry | ⬜ | compile + manual | `SettingsActivity.kt`, `AndroidManifest.xml` |
 | 6 | **Wire sniffer + pill into `MainActivity`** — sniff in `shouldInterceptRequest`, “▶ Putar tanpa iklan”, endpoint from settings, drop multi-site | ⬜ | compile + manual | `MainActivity.kt` |
@@ -37,4 +37,5 @@ Each task in the plan follows: write failing test → run red → implement → 
 ## Progress log
 
 - **Task 0** — ✅ committed `88fc059`. Media3 1.4.1 resolved cleanly; smoke test passes; spec + code-quality reviewed. (Preceded by `c9392ec` adding the Gradle wrapper, and `5427b9c` adding docs/tooling.)
-- **Tasks 1–8** — ⬜ not started.
+- **Tasks 1–3** — 🟡 implemented locally (`MediaStream`, pure-JVM `StreamSniffer`, `KeyValueStore`, `SettingsManager`, 18 unit tests), but Gradle verification is pending because this machine currently exposes Java 16 while AGP requires Java 17.
+- **Tasks 4–8** — ⬜ not started.

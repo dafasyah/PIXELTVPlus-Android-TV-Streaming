@@ -1,8 +1,8 @@
 # PIXELTV
 
-PIXELTV - Android TV & Mobile streaming app with built-in ad blocker, multi-site support, bookmark, history, and D-pad navigation. Features draggable floating menu, modern glassmorphism UI, and fullscreen video handler. Built with Kotlin + WebView.
+PIXELTV - Android TV & Mobile streaming app with built-in ad blocker, bookmark, history, and D-pad navigation. v3 moves the app to a hybrid model: browse in WebView, sniff playable streams, then play them through a native Media3/ExoPlayer layer when available while keeping WebView as fallback. Built with Kotlin + programmatic UI.
 
-**Version:** 2.1.0  
+**Version:** 3.0.0  
 **Build by:** [Buildbox Studio](https://www.tiktok.com/@buildbox.studio)
 
 <img width="1158" height="540" alt="image" src="https://github.com/user-attachments/assets/682addf6-7e01-4770-9f57-6f31cc47c4f3" />
@@ -28,6 +28,7 @@ PIXELTV - Android TV & Mobile streaming app with built-in ad blocker, multi-site
 - ✅ **Confirm Exit** — no more accidental exits
 - ✅ **Snackbar Notifications** — error messages with retry button
 - ✅ Fullscreen WebView with ad blocker
+- 🟡 Native player foundation — stream model, sniffer, and settings core are in progress for v3
 - ✅ Compatible with Android TV (D-pad native focus navigation)
 - ✅ Compatible with Phone/Tablet (touch + gestures)
 - ✅ Fullscreen video handler
@@ -37,7 +38,7 @@ PIXELTV - Android TV & Mobile streaming app with built-in ad blocker, multi-site
 - ✅ Immersive mode (hide status bar & nav bar)
 - ✅ Bookmark — save favorite pages
 - ✅ History — automatic watch history
-- ✅ Multi-site — 3 streaming sites, switch with CH+/CH- or swipe
+- 🟡 Single configurable endpoint — settings core is ready; UI wiring follows in the v3 task list
 - ✅ Draggable floating button — move anywhere, position saved
 - ✅ Modern overlay menu — glassmorphism design with animation
 - ✅ Media control — Play/Pause video via remote
@@ -87,6 +88,7 @@ PIXELTV - Android TV & Mobile streaming app with built-in ad blocker, multi-site
 - ✅ **Confirm Exit** — nggak lagi keluar nggak sengaja
 - ✅ **Snackbar Notifications** — pesan error dengan tombol retry
 - ✅ WebView fullscreen dengan ad blocker
+- 🟡 Fondasi native player — model stream, sniffer, dan core settings sedang disiapkan untuk v3
 - ✅ Kompatibel Android TV (navigasi D-pad native)
 - ✅ Kompatibel HP/Tablet (touch + gesture)
 - ✅ Fullscreen video handler
@@ -96,7 +98,7 @@ PIXELTV - Android TV & Mobile streaming app with built-in ad blocker, multi-site
 - ✅ Immersive mode
 - ✅ Bookmark — simpan halaman favorit
 - ✅ History — riwayat tontonan otomatis
-- ✅ Multi-site — 3 situs streaming
+- 🟡 Satu endpoint yang bisa dikonfigurasi — core settings sudah siap; wiring UI menyusul di task v3
 - ✅ Floating button draggable
 - ✅ Menu overlay modern — glassmorphism
 - ✅ Media control — Play/Pause via remote
@@ -129,15 +131,11 @@ PIXELTV - Android TV & Mobile streaming app with built-in ad blocker, multi-site
 
 ---
 
-## Streaming Sites
+## Streaming Endpoint
 
-| # | Site | URL |
-|---|------|-----|
-| 1 | iDlix | z1.idlixku.com |
-| 2 | LK21 | tv10.lk21official.cc |
-| 3 | Rebahin | rebahinxxi3.beauty |
+PIXELTV v3 memakai satu endpoint aktif yang dikelola oleh `SettingsManager`.
 
-> Sites can be added/changed in `SiteManager.kt`
+Default endpoint saat ini: `https://z1.idlixku.com`
 
 ---
 
@@ -153,7 +151,12 @@ StreamTV/
 │   │   ├── data/
 │   │   │   ├── BookmarkManager.kt    # Bookmark CRUD
 │   │   │   ├── HistoryManager.kt     # History tracking
-│   │   │   └── SiteManager.kt        # Multi-site config
+│   │   │   ├── KeyValueStore.kt      # Persistence seam for settings
+│   │   │   ├── SettingsManager.kt    # Endpoint, auto-sniff, User-Agent
+│   │   │   └── SiteManager.kt        # Legacy site config
+│   │   ├── stream/
+│   │   │   ├── MediaStream.kt        # Native playback stream model
+│   │   │   └── StreamSniffer.kt      # Pure-JVM stream classifier
 │   │   └── ui/
 │   │       └── OverlayMenu.kt        # Modern overlay menu
 │   ├── res/
@@ -169,6 +172,12 @@ StreamTV/
 ---
 
 ## Changelog
+
+### v3.0.0 (in progress)
+- NEW: **Native player core foundation** — `MediaStream`, `StreamType`, and pure-JVM `StreamSniffer`.
+- NEW: **Replay headers** — sniffed streams carry `User-Agent`, `Referer`, `Origin`, and optional `Cookie` for native playback.
+- NEW: **Settings core** — `SettingsManager` owns one endpoint URL, auto-sniff toggle, and User-Agent defaults through a testable `KeyValueStore`.
+- KEPT: WebView remains the fallback path while native-player wiring continues in the v3 task list.
 
 ### v2.1.0
 - NEW: **JS Navigation Layer** for Android TV remote

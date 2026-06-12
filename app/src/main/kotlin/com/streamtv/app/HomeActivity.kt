@@ -12,7 +12,7 @@ import android.view.ViewGroup
 import android.view.WindowManager
 import android.widget.*
 import com.streamtv.app.data.HistoryManager
-import com.streamtv.app.data.SiteManager
+import com.streamtv.app.data.SettingsManager
 
 /**
  * Home screen — user picks a site or continues watching
@@ -72,29 +72,23 @@ class HomeActivity : Activity() {
             setPadding(0, 0, 0, (28 * density).toInt())
         })
 
-        // Site cards
-        root.addView(TextView(this).apply {
-            text = "🌐  Situs Streaming"
-            textSize = 16f
-            setTextColor(Color.WHITE)
-            typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
-            setPadding(0, 0, 0, (12 * density).toInt())
-        })
+        val settings = SettingsManager.from(this)
 
-        val siteGrid = LinearLayout(this).apply {
+        // Primary actions
+        val actionRow = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             layoutParams = LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT
             )
             setPadding(0, 0, 0, (28 * density).toInt())
         }
-
-        SiteManager.sites.forEach { site ->
-            siteGrid.addView(createSiteCard(site, density))
-        }
-
-        root.addView(siteGrid)
+        actionRow.addView(createActionCard("▶", "Mulai Streaming", density) {
+            openSite(settings.endpointUrl)
+        })
+        actionRow.addView(createActionCard("⚙️", "Settings", density) {
+            startActivity(Intent(this, SettingsActivity::class.java))
+        })
+        root.addView(actionRow)
 
         // Continue watching section
         val recentHistory = historyManager.getRecentHistory(5)
@@ -128,7 +122,7 @@ class HomeActivity : Activity() {
         })
 
         root.addView(TextView(this).apply {
-            text = "v2.0 • Build by Buildbox Studio"
+            text = "v3.0.0 • Build by Buildbox Studio"
             textSize = 11f
             setTextColor(Color.parseColor("#44FFFFFF"))
             setPadding(0, (16 * density).toInt(), 0, 0)
@@ -138,73 +132,42 @@ class HomeActivity : Activity() {
         setContentView(scrollView)
     }
 
-    private fun createSiteCard(site: SiteManager.StreamingSite, density: Float): FrameLayout {
+    private fun createActionCard(icon: String, title: String, density: Float, onClick: () -> Unit): FrameLayout {
         val card = FrameLayout(this).apply {
-            layoutParams = LinearLayout.LayoutParams(
-                0, (120 * density).toInt(), 1f
-            ).apply {
+            layoutParams = LinearLayout.LayoutParams(0, (120 * density).toInt(), 1f).apply {
                 marginEnd = (12 * density).toInt()
             }
             background = GradientDrawable().apply {
                 cornerRadius = 16f
-                colors = intArrayOf(
-                    Color.parseColor("#1A1A2E"),
-                    Color.parseColor("#16213E")
-                )
+                colors = intArrayOf(Color.parseColor("#1A1A2E"), Color.parseColor("#16213E"))
                 gradientType = GradientDrawable.LINEAR_GRADIENT
                 setStroke(1, Color.parseColor("#33FFFFFF"))
             }
-            setPadding(
-                (16 * density).toInt(),
-                (16 * density).toInt(),
-                (16 * density).toInt(),
-                (16 * density).toInt()
-            )
+            setPadding((16 * density).toInt(), (16 * density).toInt(), (16 * density).toInt(), (16 * density).toInt())
             isFocusable = true
             isClickable = true
-
             setOnFocusChangeListener { v, hasFocus ->
                 val bg = v.background as? GradientDrawable
-                if (hasFocus) {
-                    bg?.setStroke(2, Color.parseColor("#7C4DFF"))
-                    v.scaleX = 1.05f
-                    v.scaleY = 1.05f
-                } else {
-                    bg?.setStroke(1, Color.parseColor("#33FFFFFF"))
-                    v.scaleX = 1f
-                    v.scaleY = 1f
-                }
+                if (hasFocus) { bg?.setStroke(2, Color.parseColor("#7C4DFF")); v.scaleX = 1.05f; v.scaleY = 1.05f }
+                else { bg?.setStroke(1, Color.parseColor("#33FFFFFF")); v.scaleX = 1f; v.scaleY = 1f }
             }
-
-            setOnClickListener {
-                openSite(site.url)
-            }
+            setOnClickListener { onClick() }
         }
-
         val content = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             gravity = Gravity.CENTER
             layoutParams = FrameLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.MATCH_PARENT
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT
             )
         }
-
         content.addView(TextView(this).apply {
-            text = site.icon
-            textSize = 32f
-            gravity = Gravity.CENTER
+            text = icon; textSize = 32f; gravity = Gravity.CENTER
             setPadding(0, 0, 0, (8 * density).toInt())
         })
-
         content.addView(TextView(this).apply {
-            text = site.name
-            textSize = 14f
-            setTextColor(Color.WHITE)
-            gravity = Gravity.CENTER
+            text = title; textSize = 14f; setTextColor(Color.WHITE); gravity = Gravity.CENTER
             typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
         })
-
         card.addView(content)
         return card
     }

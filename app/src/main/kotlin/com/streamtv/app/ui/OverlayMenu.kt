@@ -15,6 +15,7 @@ import android.view.Window
 import android.view.WindowManager
 import android.view.animation.DecelerateInterpolator
 import android.widget.*
+import com.streamtv.app.SettingsActivity
 import com.streamtv.app.data.BookmarkManager
 import com.streamtv.app.data.HistoryManager
 import com.streamtv.app.data.SiteManager
@@ -31,7 +32,7 @@ class OverlayMenu(
 ) {
 
     companion object {
-        const val APP_VERSION = "2.1.0"
+        const val APP_VERSION = "3.0.0"
         const val CREDIT_URL = "https://www.tiktok.com/@buildbox.studio"
     }
 
@@ -195,6 +196,7 @@ class OverlayMenu(
             Triple("⭐", "Bookmark") { dialog.dismiss(); showBookmarks() },
             Triple("📋", "Riwayat") { dialog.dismiss(); showHistory() },
             Triple("➕", "Bookmark Halaman Ini") { dialog.dismiss(); onBookmarkCurrent() },
+            Triple("⚙️", "Settings") { dialog.dismiss(); context.startActivity(Intent(context, SettingsActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) },
             Triple("🗑️", "Hapus Riwayat") { dialog.dismiss(); confirmClearHistory() }
         )
 

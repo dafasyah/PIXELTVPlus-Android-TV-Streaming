@@ -3,6 +3,7 @@ package com.streamtv.app
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.AlertDialog
+import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.ActivityInfo
 import android.graphics.Bitmap
@@ -24,7 +25,9 @@ import android.webkit.*
 import android.widget.*
 import com.streamtv.app.data.BookmarkManager
 import com.streamtv.app.data.HistoryManager
-import com.streamtv.app.data.SiteManager
+import com.streamtv.app.data.SettingsManager
+import com.streamtv.app.stream.MediaStream
+import com.streamtv.app.stream.StreamSniffer
 import com.streamtv.app.ui.OverlayMenu
 
 class MainActivity : Activity() {
@@ -37,6 +40,9 @@ class MainActivity : Activity() {
     private lateinit var overlayMenu: OverlayMenu
     private lateinit var prefs: SharedPreferences
     private lateinit var gestureDetector: GestureDetector
+    private lateinit var settingsManager: SettingsManager
+    private lateinit var sniffer: StreamSniffer
+    private var playButton: TextView? = null
 
     private var customView: View? = null
     private var customViewCallback: WebChromeClient.CustomViewCallback? = null
@@ -48,8 +54,6 @@ class MainActivity : Activity() {
     private var backPressedOnce = false
 
     companion object {
-        private val HOME_URL = SiteManager.sites[0].url
-
         private val AD_BLOCK_LIST = listOf(
             "doubleclick.net", "googlesyndication.com", "adservice.google",
             "popads.net", "popcash.net", "propellerads.com", "adnxs.com",
@@ -69,6 +73,8 @@ class MainActivity : Activity() {
         super.onCreate(savedInstanceState)
 
         prefs = getSharedPreferences("pixeltv_prefs", MODE_PRIVATE)
+        settingsManager = SettingsManager.from(this)
+        sniffer = StreamSniffer(AD_BLOCK_LIST)
 
         window.setFlags(
             WindowManager.LayoutParams.FLAG_FULLSCREEN,
@@ -111,10 +117,8 @@ class MainActivity : Activity() {
                         if (diffX > 0) {
                             // Swipe right — go back
                             if (webView.canGoBack()) webView.goBack()
-                        } else {
-                            // Swipe left — switch site
-                            switchSite(1)
                         }
+                        // swipe-left no longer switches site (single-endpoint app)
                         return true
                     }
                 } else {
@@ -180,14 +184,17 @@ class MainActivity : Activity() {
         menuButton = createDraggableMenuButton()
         rootLayout.addView(menuButton)
 
+        playButton = createPlayButton()
+        rootLayout.addView(playButton)
+
         setContentView(rootLayout)
 
         rootLayout.post { restoreButtonPosition() }
 
         scheduleHideMenuButton()
 
-        // Load URL from intent or default
-        val url = intent.getStringExtra("url") ?: HOME_URL
+        // Load URL from intent or the configured endpoint
+        val url = intent.getStringExtra("url") ?: settingsManager.endpointUrl
         webView.loadUrl(url)
     }
 
@@ -274,6 +281,54 @@ class MainActivity : Activity() {
         return container
     }
 
+    private fun createPlayButton(): TextView {
+        val density = resources.displayMetrics.density
+        return TextView(this).apply {
+            text = "▶  Putar tanpa iklan"
+            textSize = 14f
+            setTextColor(Color.WHITE)
+            typeface = Typeface.DEFAULT_BOLD
+            gravity = Gravity.CENTER
+            visibility = View.GONE
+            isFocusable = true
+            isClickable = true
+            elevation = 999f
+            setPadding((20 * density).toInt(), (12 * density).toInt(), (20 * density).toInt(), (12 * density).toInt())
+            background = GradientDrawable().apply {
+                cornerRadius = 28f
+                colors = intArrayOf(Color.parseColor("#7C4DFF"), Color.parseColor("#6C3FC7"))
+                gradientType = GradientDrawable.LINEAR_GRADIENT
+            }
+            layoutParams = FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT
+            ).apply {
+                gravity = Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL
+                bottomMargin = (28 * density).toInt()
+            }
+            setOnClickListener { launchNativePlayer() }
+        }
+    }
+
+    private fun showPlayButton() {
+        playButton?.visibility = View.VISIBLE
+    }
+
+    private fun launchNativePlayer() {
+        val stream: MediaStream = sniffer.latest ?: run {
+            Toast.makeText(this, "Stream belum terdeteksi", Toast.LENGTH_SHORT).show()
+            return
+        }
+        val headerBundle = android.os.Bundle().apply {
+            stream.headers.forEach { (k, v) -> putString(k, v) }
+        }
+        val intent = Intent(this, PlayerActivity::class.java).apply {
+            putExtra(PlayerActivity.EXTRA_URL, stream.url)
+            putExtra(PlayerActivity.EXTRA_TYPE, stream.type.name)
+            putExtra(PlayerActivity.EXTRA_HEADERS, headerBundle)
+        }
+        startActivity(intent)
+    }
+
     private fun saveButtonPosition(x: Float, y: Float) {
         prefs.edit().putFloat("btn_x", x).putFloat("btn_y", y).apply()
     }
@@ -312,7 +367,7 @@ class MainActivity : Activity() {
             cacheMode = WebSettings.LOAD_DEFAULT
             setSupportMultipleWindows(false)
             javaScriptCanOpenWindowsAutomatically = false
-            userAgentString = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+            userAgentString = settingsManager.userAgent
         }
 
         webView.setLayerType(View.LAYER_TYPE_HARDWARE, null)
@@ -327,6 +382,11 @@ class MainActivity : Activity() {
             override fun shouldInterceptRequest(view: WebView?, request: WebResourceRequest?): WebResourceResponse? {
                 val url = request?.url?.toString() ?: return null
                 if (isAdUrl(url)) return WebResourceResponse("text/plain", "UTF-8", "".byteInputStream())
+                if (settingsManager.autoSniff) {
+                    val cookie = try { CookieManager.getInstance().getCookie(url) } catch (e: Exception) { null }
+                    val stream = sniffer.inspect(url, settingsManager.userAgent, currentUrl, cookie)
+                    if (stream != null) runOnUiThread { showPlayButton() }
+                }
                 return null
             }
 
@@ -334,6 +394,8 @@ class MainActivity : Activity() {
                 super.onPageStarted(view, url, favicon)
                 progressBar.visibility = View.VISIBLE
                 currentUrl = url ?: ""
+                sniffer.clear()
+                playButton?.visibility = View.GONE
             }
 
             override fun onPageFinished(view: WebView?, url: String?) {
@@ -528,9 +590,6 @@ class MainActivity : Activity() {
                 return true
             }
 
-            KeyEvent.KEYCODE_CHANNEL_UP -> { switchSite(1); return true }
-            KeyEvent.KEYCODE_CHANNEL_DOWN -> { switchSite(-1); return true }
-
             KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE -> { toggleVideo(); return true }
 
             KeyEvent.KEYCODE_SEARCH -> { showSearchDialog(); return true }
@@ -572,14 +631,8 @@ class MainActivity : Activity() {
             .setPositiveButton("Cari") { _, _ ->
                 val query = input.text.toString().trim()
                 if (query.isNotEmpty()) {
-                    // Search on current site
-                    val searchUrl = when {
-                        currentUrl.contains("idlix") -> "https://z1.idlixku.com/?s=$query"
-                        currentUrl.contains("lk21") -> "https://tv10.lk21official.cc/?s=$query"
-                        currentUrl.contains("rebahin") -> "https://rebahinxxi3.beauty/?s=$query"
-                        else -> "https://z1.idlixku.com/?s=$query"
-                    }
-                    webView.loadUrl(searchUrl)
+                    val base = settingsManager.endpointUrl.trimEnd('/')
+                    webView.loadUrl("$base/?s=$query")
                 }
             }
             .setNegativeButton("Batal", null)
@@ -591,16 +644,6 @@ class MainActivity : Activity() {
             "(function(){var v=document.querySelector('video');if(v){if(v.paused)v.play();else v.pause();}})();",
             null
         )
-    }
-
-    private var currentSiteIndex = 0
-
-    private fun switchSite(direction: Int) {
-        val sites = SiteManager.sites
-        currentSiteIndex = (currentSiteIndex + direction + sites.size) % sites.size
-        val site = sites[currentSiteIndex]
-        webView.loadUrl(site.url)
-        Toast.makeText(this, "${site.icon} ${site.name}", Toast.LENGTH_SHORT).show()
     }
 
     override fun onResume() {

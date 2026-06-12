@@ -1,23 +1,9 @@
 package com.streamtv.app.data
 
 /**
- * Multi-site support - daftar situs streaming yang bisa dipilih user
+ * Legacy default endpoint. The active endpoint is now managed by
+ * [SettingsManager]; this only provides the first-run default value.
  */
 object SiteManager {
-
-    data class StreamingSite(
-        val name: String,
-        val url: String,
-        val icon: String = "🎬"
-    )
-
-    val sites = listOf(
-        StreamingSite("iDlix", "https://z1.idlixku.com", "🎬"),
-        StreamingSite("LK21", "https://tv10.lk21official.cc", "🎥"),
-        StreamingSite("Rebahin", "https://rebahinxxi3.beauty/", "📺")
-    )
-
-    fun getSiteByName(name: String): StreamingSite? {
-        return sites.find { it.name == name }
-    }
+    const val DEFAULT_URL = SettingsManager.DEFAULT_ENDPOINT
 }

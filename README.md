@@ -173,11 +173,12 @@ StreamTV/
 
 ## Changelog
 
-### v3.0.0 (in progress)
-- NEW: **Native player core foundation** — `MediaStream`, `StreamType`, and pure-JVM `StreamSniffer`.
-- NEW: **Replay headers** — sniffed streams carry `User-Agent`, `Referer`, `Origin`, and optional `Cookie` for native playback.
-- NEW: **Settings core** — `SettingsManager` owns one endpoint URL, auto-sniff toggle, and User-Agent defaults through a testable `KeyValueStore`.
-- KEPT: WebView remains the fallback path while native-player wiring continues in the v3 task list.
+### v3.0.0
+- NEW: **Native player (Media3/ExoPlayer)** — sniffs the `.m3u8`/`.mpd`/`.mp4` stream from the page and plays it ad-free in a built-in player with full D-pad control.
+- NEW: **"Putar tanpa iklan" button** appears when a stream is detected.
+- NEW: **Settings screen** — configure a single streaming endpoint URL, auto-sniff toggle, and User-Agent.
+- CHANGED: **Single configurable endpoint** replaces the 3 hardcoded sites; simplified Home screen.
+- KEPT: WebView remains as an automatic fallback when a stream can't be sniffed (DRM/blob).
 
 ### v2.1.0
 - NEW: **JS Navigation Layer** for Android TV remote

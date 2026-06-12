@@ -191,8 +191,6 @@ class OverlayMenu(
 
         // Menu items
         val menuItems = listOf(
-            Triple("🏠", "Beranda") { dialog.dismiss(); onNavigate(SiteManager.sites[0].url) },
-            Triple("🌐", "Pilih Situs") { dialog.dismiss(); showSiteSelector() },
             Triple("⭐", "Bookmark") { dialog.dismiss(); showBookmarks() },
             Triple("📋", "Riwayat") { dialog.dismiss(); showHistory() },
             Triple("➕", "Bookmark Halaman Ini") { dialog.dismiss(); onBookmarkCurrent() },
@@ -255,52 +253,6 @@ class OverlayMenu(
             .setDuration(200)
             .setInterpolator(DecelerateInterpolator())
             .start()
-    }
-
-    fun showSiteSelector() {
-        val dialog = Dialog(context)
-        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
-        dialog.window?.apply {
-            setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
-            setDimAmount(0.7f)
-            setGravity(Gravity.CENTER)
-        }
-
-        val density = context.resources.displayMetrics.density
-        val maxWidth = (320 * density).toInt()
-
-        val rootLayout = LinearLayout(context).apply {
-            orientation = LinearLayout.VERTICAL
-            background = createMenuBackground()
-            setPadding(
-                (24 * density).toInt(),
-                (24 * density).toInt(),
-                (24 * density).toInt(),
-                (24 * density).toInt()
-            )
-            layoutParams = ViewGroup.LayoutParams(maxWidth, ViewGroup.LayoutParams.WRAP_CONTENT)
-        }
-
-        rootLayout.addView(TextView(context).apply {
-            text = "🌐  Pilih Situs"
-            textSize = 18f
-            setTextColor(Color.WHITE)
-            typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
-            setPadding(0, 0, 0, (16 * density).toInt())
-        })
-
-        SiteManager.sites.forEach { site ->
-            rootLayout.addView(createMenuItem(site.icon, site.name) {
-                dialog.dismiss()
-                onNavigate(site.url)
-            })
-        }
-
-        dialog.setContentView(rootLayout)
-        dialog.show()
-
-        rootLayout.alpha = 0f
-        rootLayout.animate().alpha(1f).setDuration(150).start()
     }
 
     fun showBookmarks() {

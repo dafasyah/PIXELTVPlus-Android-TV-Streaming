@@ -56,5 +56,19 @@
             android:screenOrientation="landscape"
             android:configChanges="orientation|screenSize|keyboardHidden" />
 
+        <!-- Native Media3 Player -->
+        <activity
+            android:name=".PlayerActivity"
+            android:exported="false"
+            android:screenOrientation="landscape"
+            android:configChanges="orientation|screenSize|keyboardHidden|smallestScreenSize" />
+
+        <!-- Settings -->
+        <activity
+            android:name=".SettingsActivity"
+            android:exported="false"
+            android:screenOrientation="landscape"
+            android:configChanges="orientation|screenSize|keyboardHidden" />
+
     </application>
 </manifest>
